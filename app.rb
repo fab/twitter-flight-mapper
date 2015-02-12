@@ -1,5 +1,6 @@
 require 'twitter'
 require 'tzinfo'
+require 'csv'
 
 timezone_hash = {}
 
@@ -25,7 +26,7 @@ client.user_timeline('fabsays', {count: 200}).each do |tweet|
     timezone_name = timezone_hash[origin]
     timezone = TZInfo::Timezone.get(timezone_name)
     tweet_date_utc = tweet.created_at
-    tweet_date = timezone.utc_to_local(tweet_date_utc).strftime('%b %d %Y')
+    tweet_date = timezone.utc_to_local(tweet_date_utc).strftime('%Y-%m-%d')
     tweet_id = tweet.id
     tweet_hash = {id: tweet_id, origin: origin, destination: destination, date: tweet_date}
     all_tweets << tweet_hash
@@ -45,7 +46,7 @@ while true
       timezone_name = timezone_hash[origin]
       timezone = TZInfo::Timezone.get(timezone_name)
       tweet_date_utc = tweet.created_at
-      tweet_date = timezone.utc_to_local(tweet_date_utc).strftime('%b %d %Y')
+      tweet_date = timezone.utc_to_local(tweet_date_utc).strftime('%Y-%m-%d')
       tweet_id = tweet.id
       tweet_hash = {id: tweet_id, origin: origin, destination: destination, date: tweet_date}
       tweets_on_this_request << tweet_hash
@@ -63,3 +64,11 @@ all_tweets.each do |tweet|
 end
 
 puts "Total Flights: #{all_tweets.length}"
+
+
+CSV.open('flights.csv', "wb") do |csv|
+  csv << CSV.read('import_headers.csv').first
+  all_tweets.each do |tweet|
+    csv << [tweet[:date], tweet[:origin], tweet[:destination]]
+  end
+end

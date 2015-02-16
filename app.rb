@@ -1,14 +1,9 @@
 require 'twitter'
 require 'tzinfo'
 require 'csv'
+require_relative 'airport_timezones'
 
-timezone_hash = {}
-
-f = File.open('timezone_map.txt')
-f.each_line do |line|
-  airport_code, timezone_name = line.strip.split(/\t/)
-  timezone_hash[airport_code] = timezone_name
-end
+include AirportTimezones
 
 client = Twitter::REST::Client.new do |config|
   config.consumer_key        = ENV['TWITTER_KEY']
@@ -23,7 +18,7 @@ client.user_timeline('fabsays', {count: 200}).each do |tweet|
   tweet_text = tweet.text
   if /-&gt/ === tweet_text  # check if tweet text contains '->'
     origin, destination = tweet_text.scan(/\w\w\w/)
-    timezone_name = timezone_hash[origin]
+    timezone_name = AirportTimezones.list[origin]
     timezone = TZInfo::Timezone.get(timezone_name)
     tweet_date_utc = tweet.created_at
     tweet_date = timezone.utc_to_local(tweet_date_utc).strftime('%Y-%m-%d')
@@ -43,7 +38,7 @@ while true
     tweet_text = tweet.text
     if /-&gt/ === tweet_text  # check if tweet text contains '->'
       origin, destination = tweet_text.scan(/\w\w\w/)
-      timezone_name = timezone_hash[origin]
+      timezone_name = AirportTimezones.list[origin]
       timezone = TZInfo::Timezone.get(timezone_name)
       tweet_date_utc = tweet.created_at
       tweet_date = timezone.utc_to_local(tweet_date_utc).strftime('%Y-%m-%d')

@@ -1,17 +1,10 @@
 # Require the gems
 require 'tweetstream'
 require 'capybara/poltergeist'
-
-# TODO: extract timezone stuff into seperate class
 require 'tzinfo'
+require_relative 'airport_timezones'
 
-timezone_hash = {}
-
-f = File.open('timezone_map.txt')
-f.each_line do |line|
-  airport_code, timezone_name = line.strip.split(/\t/)
-  timezone_hash[airport_code] = timezone_name
-end
+include AirportTimezones
 
 # Configure TweetStream to use my OAuth tokens
 TweetStream.configure do |config|
@@ -40,7 +33,7 @@ client.userstream(with: 'user') do |tweet|
   puts tweet_text
   if /-&gt/ === tweet_text  # check if tweet text contains '->'
     origin, destination = tweet_text.scan(/\w\w\w/)
-    timezone_name = timezone_hash[origin]
+    timezone_name = AirportTimezones.list[origin]
     timezone = TZInfo::Timezone.get(timezone_name)
     date_utc = tweet.created_at
     date = timezone.utc_to_local(date_utc).strftime('%Y-%m-%d')

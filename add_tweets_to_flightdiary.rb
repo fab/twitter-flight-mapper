@@ -84,7 +84,7 @@ end
 def sign_in_to_flightdiary
   @browser.find('.sign-in-button').click
   @browser.fill_in 'username', with: 'fabm'
-  @browser.fill_in 'password', with: 'qaqaqa' # Make this ENV['FLIGHTDIARY_PASSWORD']
+  @browser.fill_in 'password', with: ENV['FLIGHTDIARY_PASSWORD']
   @browser.click_button 'Sign in'
 end
 
